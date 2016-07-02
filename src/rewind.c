@@ -218,8 +218,10 @@ main (int   argc,char *argv[])
                             while(fgets(audit_buf,sizeof(char)*8191,audit_fp) != NULL ){
 
                                 mc.insert = bson_new_from_json((const uint8_t *)audit_buf,-1,&(mc.error));
-                                if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
-                                    fprintf (stderr, "%s\n", mc.error.message);
+                                if(mc.insert != NULL){
+                                    if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
+                                        fprintf (stderr, "%s\n", mc.error.message);
+                                    }
                                 }
                                 //每次插入成功后把audit_buf清空。
                                 memset(audit_buf,0,sizeof(char)*8191);
@@ -251,10 +253,12 @@ main (int   argc,char *argv[])
                             while(fgets(audit_buf,sizeof(char)*8191,audit_fp) != NULL ){
 
                                 mc.insert = bson_new_from_json((const uint8_t *)audit_buf,-1,&(mc.error));
-                                if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
-                                    fprintf (stderr, "%s\n", mc.error.message);
+                                if(mc.insert != NULL){
+                                    if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
+                                        fprintf (stderr, "%s\n", mc.error.message);
+                                    }
                                 }
-                                //每次插入成功后把audit_buf清空。
+                               //每次插入成功后把audit_buf清空。
                                 memset(audit_buf,0,sizeof(char)*8191);
                             }
 
