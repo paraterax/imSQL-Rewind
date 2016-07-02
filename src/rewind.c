@@ -221,7 +221,7 @@ main (int   argc,char *argv[])
                         //打开文件用于
                         audit_fp = fopen(audit_log_path,"r");
                         if(audit_fp == NULL){
-                            perror("fopen()");
+                            fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","fopen Error");
                             exit(1);
                         }
 
@@ -230,21 +230,17 @@ main (int   argc,char *argv[])
                         mc.command = BCON_NEW ("ping", BCON_INT32 (1));
                         mc.retval = mongoc_client_command_simple (mc.client, "admin", mc.command, NULL, &(mc.reply), &(mc.error));
                         if (!mc.retval) {
-                            fprintf (stderr, "%s\n", mc.error.message);
+                            fprintf (stderr, "\e[31m\e[1m%s\e[0m\n", mc.error.message);
                             return EXIT_FAILURE;
                         }
                         else{
                             //如果服务可用，就把得到的内容打印到mongodb
-                            printf("ping success\n");
                             while(fgets(audit_buf,sizeof(char)*8191,audit_fp) != NULL ){
 
                                 mc.insert = bson_new_from_json((const uint8_t *)audit_buf,-1,&(mc.error));
                                 if(mc.insert != NULL){
                                     if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
-                                        fprintf (stderr, "%s\n", mc.error.message);
-                                    }
-                                    else{
-                                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
+                                        fprintf (stderr, "\e[31m\e[1m%s\e[0m\n", mc.error.message);
                                     }
                                 }
                                 //每次插入成功后把audit_buf清空。
@@ -252,13 +248,14 @@ main (int   argc,char *argv[])
                             }
 
                         }
+                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
                         break;
                     //如果文件路径存在，但是mtime不相等。
                     case 2:
                         //打开文件用于
                         audit_fp = fopen(audit_log_path,"r");
                         if(audit_fp == NULL){
-                            perror("fopen()");
+                            fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","fopen Error");
                             exit(1);
                         }
 
@@ -267,21 +264,17 @@ main (int   argc,char *argv[])
                         mc.command = BCON_NEW ("ping", BCON_INT32 (1));
                         mc.retval = mongoc_client_command_simple (mc.client, "admin", mc.command, NULL, &(mc.reply), &(mc.error));
                         if (!mc.retval) {
-                            fprintf (stderr, "%s\n", mc.error.message);
+                            fprintf (stderr, "\e[31m\e[1m%s\e[0m\n", mc.error.message);
                             return EXIT_FAILURE;
                         }
                         else{
                             //如果服务可用，就把得到的内容打印到mongodb
-                            printf("ping success\n");
                             while(fgets(audit_buf,sizeof(char)*8191,audit_fp) != NULL ){
 
                                 mc.insert = bson_new_from_json((const uint8_t *)audit_buf,-1,&(mc.error));
                                 if(mc.insert != NULL){
                                     if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
-                                        fprintf (stderr, "%s\n", mc.error.message);
-                                    }
-                                    else{
-                                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
+                                        fprintf (stderr, "\e[31m\e[1m%s\e[0m\n", mc.error.message);
                                     }
                                 }
                                //每次插入成功后把audit_buf清空。
@@ -289,9 +282,10 @@ main (int   argc,char *argv[])
                             }
 
                         }
+                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
                         break;
                     default:
-                        printf("chk Error\n");
+                        fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","chk Error");
                         exit(2);
                 }
 
