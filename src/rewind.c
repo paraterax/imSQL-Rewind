@@ -191,8 +191,8 @@ main (int   argc,char *argv[])
     //读取指定目录下的audit.log.xx文件。
     if(( dp = opendir(argv[1])) == NULL)
     {
-        perror("opendir()");
-        exit(1);
+        fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","opendir Error");
+        exit(4);
     }
 
     //切换到指定目录。
@@ -218,7 +218,6 @@ main (int   argc,char *argv[])
                         break;
                     //如果文件路径不存在并且mtime不存在
                     case 1:
-                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
                         //打开文件用于
                         audit_fp = fopen(audit_log_path,"r");
                         if(audit_fp == NULL){
@@ -244,6 +243,9 @@ main (int   argc,char *argv[])
                                     if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
                                         fprintf (stderr, "%s\n", mc.error.message);
                                     }
+                                    else{
+                                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
+                                    }
                                 }
                                 //每次插入成功后把audit_buf清空。
                                 memset(audit_buf,0,sizeof(char)*8191);
@@ -253,7 +255,6 @@ main (int   argc,char *argv[])
                         break;
                     //如果文件路径存在，但是mtime不相等。
                     case 2:
-                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
                         //打开文件用于
                         audit_fp = fopen(audit_log_path,"r");
                         if(audit_fp == NULL){
@@ -278,6 +279,9 @@ main (int   argc,char *argv[])
                                 if(mc.insert != NULL){
                                     if (!mongoc_collection_insert (mc.collection, MONGOC_INSERT_NONE, mc.insert, NULL, &(mc.error))){
                                         fprintf (stderr, "%s\n", mc.error.message);
+                                    }
+                                    else{
+                                        update_filestatus_to_db(chk_ret,audit_log_path,statbuf);
                                     }
                                 }
                                //每次插入成功后把audit_buf清空。
