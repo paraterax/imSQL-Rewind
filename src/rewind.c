@@ -145,6 +145,16 @@ int update_filestatus_to_db(int rc,const char *path,struct stat statbuf)
     int
 main (int   argc,char *argv[])
 {
+    //判断参数的正确性。
+    if(argc <3){
+        fprintf(stderr,"%s","Usage: \n\trewind {path of audit log} {mongodb host:port}\n");
+        fprintf(stderr,"Sample:\n\t\e[32m\e[1m%s\e[0m\n","rewind /tmp  mongodb01:3307");
+        exit(1);
+    }
+
+    char mongo_host_port[512] ={0};
+    snprintf(mongo_host_port,sizeof(char)*511,"mongodb://%s",argv[2]);
+
     MC mc;
     int chk_ret= 0;
 
@@ -159,9 +169,21 @@ main (int   argc,char *argv[])
 
     //创建mongodb连接实例。
     mongoc_init ();
-    mc.client = mongoc_client_new ("mongodb://mongodb01:3307");
+    mc.client = mongoc_client_new (mongo_host_port);
+    if(mc.client == NULL){
+        fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","mongoc_client_new Error");
+        exit(3);
+    }
     mc.database = mongoc_client_get_database (mc.client, "inspect");
+    if(mc.database == NULL){
+        fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","mongoc_client_get_database Error");
+        exit(3);
+    }
     mc.collection = mongoc_client_get_collection (mc.client, "inspect", "auditlog");
+    if(mc.collection == NULL){
+        fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","mongoc_client_get_collection Error");
+        exit(3);
+    }
 
     create_db_objects();
 
