@@ -35,7 +35,8 @@ install -D -m 0755 $MBD/rewind_slow  $RBR/%{_bindir}/rewind_slow
 %post 
 
 %files
-%{_bindir}/rewind
+%{_bindir}/rewind_audit
+%{_bindir}/rewind_slow
 #%doc
 
 %changelog
