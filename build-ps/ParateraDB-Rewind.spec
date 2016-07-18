@@ -1,6 +1,6 @@
 Name:       ParateraDB-Rewind
 Version:    0.1
-Release:	4%{?dist}
+Release:	5%{?dist}
 Summary:	ParateraDB Utils Tools.
 
 Group:      Databases/ParateraDB	
@@ -29,7 +29,8 @@ make %{?_smp_mflags}
 RBR=$RPM_BUILD_ROOT
 MBD=$RPM_BUILD_DIR/%{name}
 
-install -D -m 0755 $MBD/rewind $RBR/%{_bindir}/rewind
+install -D -m 0755 $MBD/rewind_audit $RBR/%{_bindir}/rewind_audit
+install -D -m 0755 $MBD/rewind_slow  $RBR/%{_bindir}/rewind_slow
 
 %post 
 
