@@ -47,20 +47,25 @@ int create_db_objects(void){
 
     query = (char *)malloc(sizeof(char)*4096);
     memset(query,0,sizeof(char)*4096);
+    memset(isTableExist,0,sizeof(char)*16);
 
-    strncpy(query,"SELECT COUNT(*) FROM sqlite_master where type='table' and name='rewind'",sizeof(char)*4095);
+    strncpy(query,"SELECT COUNT(*) FROM sqlite_master where type='table' and name='rewind_slow'",sizeof(char)*4095);
     sqlite3_exec(db,query,chk_table_exists_callback,isTableExist,NULL);
 
     if(strcmp(isTableExist,"0") == 0){
         memset(query,0,sizeof(char)*4096);
         strncpy(query," \
-               CREATE TABLE rewind ( \
+               CREATE TABLE rewind_slow ( \
                  path varchar(256) NOT NULL PRIMARY KEY, \
                  mtime varchar(256) NOT NULL \
                  )",sizeof(char)*4095);
 
         sqlite3_exec(db,query,NULL,NULL,NULL);
     }
+    //释放内存
+    free(isTableExist);
+    free(query);
+
     return(0);
 }
 
@@ -81,26 +86,32 @@ int chk_file_exist_from_db(const char *path,struct stat statbuf)
     query = (char *)malloc(sizeof(char)*4096);
     memset(query,0,sizeof(char)*4096);
 
-    snprintf(query,sizeof(char)*4095,"SELECT COUNT(*) FROM rewind where path='%s'",path);
+    snprintf(query,sizeof(char)*4095,"SELECT COUNT(*) FROM rewind_slow where path='%s'",path);
     sqlite3_exec(db,query,chk_table_exists_callback,isPathExist,NULL);
 
     memset(query,0,sizeof(char)*4096);
-    snprintf(query,sizeof(char)*4095,"SELECT COUNT(*) FROM rewind where path='%s' and mtime='%d'",path,(int)statbuf.st_mtime);
+    snprintf(query,sizeof(char)*4095,"SELECT COUNT(*) FROM rewind_slow where path='%s' and mtime='%d'",path,(int)statbuf.st_mtime);
     sqlite3_exec(db,query,chk_table_exists_callback,isMtimeExist,NULL);
 
     //如果文件路径不存在
     if(strcmp(isPathExist,"1") == 0){
         //如果文件路径存在，并且mtime不存在。
         if(strcmp(isMtimeExist,"0") == 0){
+            free(isPathExist);
+            free(isMtimeExist);
             return(2); 
         }
         else if(strcmp(isMtimeExist,"1") == 0){
             //如果文件路径存在，并且mtime存在。
+            free(isPathExist);
+            free(isMtimeExist);
             return(0);
         }
     }
     else{
         //如果文件路径不存在
+        free(isPathExist);
+        free(isMtimeExist);
         return(1);
     }
 }
@@ -123,20 +134,28 @@ int update_filestatus_to_db(int rc,const char *path,struct stat statbuf)
         //如果文件存在并且，mtime存在
         case 0: 
             fprintf(stderr,"%s Have Read\n",path);
+            goto goException;
             break;
         //如果文件路径不存在。
         case 1:
-            snprintf(query,sizeof(char)*4095,"INSERT INTO  rewind(path,mtime) values('%s','%d')",path,(int)statbuf.st_mtime);
+            snprintf(query,sizeof(char)*4095,"INSERT INTO  rewind_slow(path,mtime) values('%s','%d')",path,(int)statbuf.st_mtime);
             sqlite3_exec(db,query,NULL,NULL,NULL);
+            goto goException;
             break;
             //如果文件路径存在，并且mtime不存在
         case 2:
-            snprintf(query,sizeof(char)*4095,"UPDATE rewind SET mtime='%d' WHERE path='%s'",(int)statbuf.st_mtime,path);
+            snprintf(query,sizeof(char)*4095,"UPDATE rewind_slow SET mtime='%d' WHERE path='%s'",(int)statbuf.st_mtime,path);
             sqlite3_exec(db,query,NULL,NULL,NULL);
+            goto goException;
             break;
         default:
             fprintf(stderr,"Path && mtime");
+            goto goException;
     }
+
+goException:
+    free(isTableExist);
+    free(query);
     
 }
 
@@ -147,8 +166,8 @@ main (int   argc,char *argv[])
 {
     //判断参数的正确性。
     if(argc <3){
-        fprintf(stderr,"%s","Usage: \n\trewind {path of audit log} {mongodb host:port}\n");
-        fprintf(stderr,"Sample:\n\t\e[32m\e[1m%s\e[0m\n","rewind /tmp  mongodb01:3307");
+        fprintf(stderr,"%s","Usage: \n\trewind_slow {path of slow log} {mongodb host:port}\n");
+        fprintf(stderr,"Sample:\n\t\e[32m\e[1m%s\e[0m\n","rewind_slow /tmp  mongodb01:3307");
         exit(1);
     }
 
@@ -179,7 +198,7 @@ main (int   argc,char *argv[])
         fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","mongoc_client_get_database Error");
         exit(3);
     }
-    mc.collection = mongoc_client_get_collection (mc.client, "inspect", "auditlog");
+    mc.collection = mongoc_client_get_collection (mc.client, "inspect", "slowlog");
     if(mc.collection == NULL){
         fprintf(stderr,"\e[31m\e[1m%s\e[0m\n","mongoc_client_get_collection Error");
         exit(3);
@@ -205,7 +224,7 @@ main (int   argc,char *argv[])
         if(S_IFREG &statbuf.st_mode)
         {
             //如果文件名是audit.log.xx就继续。
-            if((strstr(entry->d_name,"audit.log.")) != NULL)
+            if((strstr(entry->d_name,"slowquery.")) != NULL)
             {
                 //拼出文件的绝对路径。 
                 snprintf(audit_log_path,sizeof(char)*511,"%s/%s",argv[1],entry->d_name);
