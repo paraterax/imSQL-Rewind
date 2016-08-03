@@ -1,0 +1,6 @@
+imSQL-Rewind的主要功能是把imSQL生成的JSON格式的慢查询日志和审计日志导入到MongoDB中。
+之前实现的方案是：
+1.修改audit_log.c文件，添加MongoDB的写入代码。使imSQL直接把JSON格式的日志打印到MongoDB中。但是这样实现有个非常致命的缺陷，就是无论是MongoDB的问题，还是网络问题。都会使imSQL的所有操作挂起。服务不可用。所以废弃了这种实现。
+具体详见audit_to_mongo分支。
+2.后来改良了实现方案。imSQL把JSON格式的审计日志和慢查询日志先写到本地磁盘，控制好每个文件的大小和文件个数。然后用现在的rewind_audit和rewind_slow命令定时读取文件，然后导入MongoDB中。测试后，发现这种实现方案不会影响imSQL的正常运转。
+
