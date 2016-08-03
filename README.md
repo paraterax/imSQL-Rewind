@@ -15,10 +15,14 @@ imSQL把JSON格式的审计日志和慢查询日志先写到本地磁盘，控�
 # 2.编译和运行
     本软件依赖mongo c driver和sqlite，所以编译之前除了要确保系统中有GCC，还要把这两个依赖装上。
 ## 2.1.直接编译方式
-本软件已经写好了Makefile文件，所以可以直接make编译出二进制文件。
-`# cd imSQL-Rewind;make`
+本软件已经写好了Makefile文件，所以可以直接make编译出二进制文件。  
+
+`# cd imSQL-Rewind;make`  
+
 ## 2.2.编译成rpm包的方式
-`# git clone xxx/imSQL-Rewind /root/rpmbuild/SOURCES/imSQL-Rewind`
-`# cp /root/rpmbuild/SOURCES/imSQL-Rewind/build-ps/imSQL-Rewind.spec /root/rpmbuild/SPECS`
+`# git clone xxx/imSQL-Rewind /root/rpmbuild/SOURCES/imSQL-Rewind`  
+
+`# cp /root/rpmbuild/SOURCES/imSQL-Rewind/build-ps/imSQL-Rewind.spec /root/rpmbuild/SPECS`  
+
 `# rpmbuild -ba /root/rpmbuild/SPECS/imSQL-Rewind.spec`
 
