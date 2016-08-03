@@ -1,11 +1,11 @@
-Name:       ParateraDB-Rewind
-Version:    0.1
+Name:       imSQL-Rewind
+Version:    0.2
 Release:	5%{?dist}
-Summary:	ParateraDB Utils Tools.
+Summary:	imSQL Utils Tools.
 
-Group:      Databases/ParateraDB	
+Group:      Databases/imSQL	
 License:    Copyright(c) 2015	
-URL:	    https://git.paratera.net/dba/ParateraDB-Utils	
+URL:	    https://git.paratera.net/dba/imSQL-Utils	
 Source0:    https://git.paratera.net/dba/%{name}.tar.gz	
 
 
